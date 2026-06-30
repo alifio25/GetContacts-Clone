@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+git push -u origin main<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -318,6 +318,14 @@
                     <label>Kategori</label>
                     <input type="text" id="catInput" class="form-input" value="myContacts" placeholder="Kategori">
                 </div>
+                <div class="form-group">
+                    <label>Username Instagram</label>
+                    <input type="text" id="igInput" class="form-input" placeholder="Contoh: alifio25">
+                </div>
+                <div class="form-group">
+                    <label>Link/Username Facebook</label>
+                    <input type="text" id="fbInput" class="form-input" placeholder="Contoh: Alifio">
+                </div>
                 <div style="display:flex; gap:10px;">
                     <button type="button" class="btn-header" style="background:#e2e8f0; color:#333; flex:1; justify-content:center;" onclick="closeModal('formModal')">Batal</button>
                     <button type="submit" class="btn-primary" style="margin-top:0; flex:2;">Simpan</button>
@@ -336,6 +344,18 @@
             <div class="sql-box" id="sqlCode"></div>
             <button class="btn-primary" onclick="copySql()">Salin ke Clipboard</button>
             <button class="btn-header" style="width:100%; margin-top:10px; background:transparent; border:1px solid #ccc; color:#333;" onclick="closeModal('sqlModal')">Tutup</button>
+        </div>
+    </div>
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal" style="text-align: center;">
+            <div class="avatar" id="detailAvatar" style="width: 80px; height: 80px; font-size: 2.5rem; margin: 0 auto 1rem;">A</div>
+            <h2 class="modal-title" id="detailName" style="margin-bottom: 0.5rem;">Nama</h2>
+            <p style="color: var(--secondary); margin-bottom: 1.5rem;" id="detailPhone">08...</p>
+            
+            <div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 1.5rem;" id="detailSocials">
+                </div>
+    
+            <button class="btn-header" style="background:#e2e8f0; color:#333; width: 100%;" onclick="closeModal('detailModal')">Tutup</button>
         </div>
     </div>
 
@@ -556,7 +576,7 @@
                 const card = document.createElement('div');
                 card.className = 'contact-card';
                 card.innerHTML = `
-                    <div class="avatar" style="background:${color}; color: #333;">${initial}</div>
+                    <div class="avatar" style="background:${color}; color: #333; cursor: pointer;" onclick="viewDetail(${c.id})">${initial}</div>
                     <div class="info">
                         <div class="name">${escapeHtml(c.name)}</div>
                         <div class="phone">
