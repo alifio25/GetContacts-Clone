@@ -319,12 +319,12 @@ git push -u origin main<!DOCTYPE html>
                     <input type="text" id="catInput" class="form-input" value="myContacts" placeholder="Kategori">
                 </div>
                 <div class="form-group">
-                    <label>Username Instagram</label>
-                    <input type="text" id="igInput" class="form-input" placeholder="Contoh: alifio25">
+                    <label>Link Profil Instagram</label>
+                    <input type="text" id="igInput" class="form-input" placeholder="Contoh: https://instagram.com/alifio25">
                 </div>
                 <div class="form-group">
-                    <label>Link/Username Facebook</label>
-                    <input type="text" id="fbInput" class="form-input" placeholder="Contoh: Alifio">
+                    <label>Link Profil Facebook</label>
+                    <input type="text" id="fbInput" class="form-input" placeholder="Contoh: https://facebook.com/alifio">
                 </div>
                 <div style="display:flex; gap:10px;">
                     <button type="button" class="btn-header" style="background:#e2e8f0; color:#333; flex:1; justify-content:center;" onclick="closeModal('formModal')">Batal</button>
@@ -700,7 +700,7 @@ git push -u origin main<!DOCTYPE html>
         }
 
         // 4. SQL Generator (Fitur Khusus untuk Dosen)
-        function openSqlModal() {
+    function openSqlModal() {
             let sql = `-- Tabel Database untuk Aplikasi Kontak\n`;
             sql += `CREATE DATABASE IF NOT EXISTS kontak_db;\nUSE kontak_db;\n\n`;
             sql += `CREATE TABLE contacts (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  name VARCHAR(100) NOT NULL,\n  phone VARCHAR(20) NOT NULL,\n  email VARCHAR(100),\n  category VARCHAR(50),\n  ig VARCHAR(100),\n  fb VARCHAR(100)\n);\n\n`;
