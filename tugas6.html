@@ -274,9 +274,10 @@ git push -u origin main<!DOCTYPE html>
                 <h1>GetContacts Clone</h1>
                 <div class="stats" id="totalStats">0 Kontak Tersimpan</div>
             </div>
-            <button class="btn-header" onclick="openSqlModal()">
-                💾 Database SQL
-            </button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-header" onclick="openSqlModal()">💾 Database SQL</button>
+                <button class="btn-header" style="background: var(--danger); border-color: var(--danger);" onclick="logout()">Keluar</button>
+            </div>
         </div>
     </header>
 
