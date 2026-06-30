@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rolodex — Buku Telepon Digital</title>
+<style>
+:root{
+  --ink:#1b1b1f;
+  --ink-soft:#2c2c33;
+  --paper:#f5f0e6;
+  --paper-card:#fffdf8;
+  --brass:#b4863a;
+  --brass-light:#e8c98a;
+  --rust:#a8462f;
+  --sage:#5c7a5e;
+  --line:#e3dac8;
+  --muted:#8a8270;
+  --text:#241f17;
+  --radius:14px;
+  --shadow:0 6px 20px -8px rgba(27,27,31,.25);
+  --font-display:'Georgia','Times New Roman',serif;
+  --font-body:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-mono:'Courier New',monospace;
+}
+[data-theme="dark"]{
+  --paper:#15141a;
+  --paper-card:#1f1e26;
+  --line:#34323e;
+  --text:#ece6d8;
+  --muted:#a39d8c;
+  --ink:#0e0d11;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:var(--font-body);
+  background:var(--paper);
+  color:var(--text);
+  min-height:100vh;
+  transition:background .3s,color .3s;
+}
+button{font-family:inherit;}
+::selection{background:var(--brass-light);color:var(--ink);}
+
+/* ===== LOGIN SCREEN ===== */
+#loginScreen{
+  position:fixed;inset:0;background:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  z-index:500; padding:1.5rem;
+}
+.login-card{
+  width:100%;max-width:380px;
+  background:var(--paper-card);
+  border-radius:18px;
+  padding:2.5rem 2rem;
+  box-shadow:0 30px 60px -20px rgba(0,0,0,.6);
+  border-top:6px solid var(--brass);
+  position:relative;
+}
+.login-tab-cut{
+  position:absolute; top:-14px; left:50%; transform:translateX(-50%);
+  width:80px;height:24px;background:var(--brass);
+  border-radius:0 0 10px 10px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink);font-family:var(--font-mono);font-size:.65rem;font-weight:700;
+  letter-spacing:1px;
+}
+.login-brand{text-align:center;margin-bottom:1.8rem;}
+.login-brand .mark{
+  width:56px;height:56px;border-radius:50%;
+  background:linear-gradient(145deg,var(--brass),var(--rust));
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto .8rem; color:#fff;font-family:var(--font-display);font-size:1.6rem;font-weight:700;
+}
+.login-brand h1{font-family:var(--font-display);font-size:1.5rem;letter-spacing:.5px;}
+.login-brand p{font-size:.8rem;color:var(--muted);margin-top:.3rem;}
+.lg-group{margin-bottom:1rem;}
+.lg-group label{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem;font-weight:600;}
+.lg-group input{
+  width:100%;padding:.75rem .9rem;border:1.5px solid var(--line);
+  border-radius:10px;font-size:.95rem;background:transparent;color:var(--text);outline:none;transition:.2s;
+}
+.lg-group input:focus{border-color:var(--brass);}
+.lg-btn{
+  width:100%;padding:.85rem;border:none;border-radius:10px;
+  background:var(--ink);color:#f5f0e6;font-weight:700;font-size:.92rem;
+  cursor:pointer;letter-spacing:.03em;margin-top:.4rem;transition:.2s;
+}
+.lg-btn:hover{background:var(--rust);}
+.lg-switch{text-align:center;font-size:.8rem;color:var(--muted);margin-top:1.1rem;}
+.lg-switch a{color:var(--brass);font-weight:700;cursor:pointer;text-decoration:none;}
+.lg-error{
+  background:rgba(168,70,47,.12);border:1px solid var(--rust);color:var(--rust);
+  padding:.6rem .8rem;border-radius:8px;font-size:.78rem;margin-bottom:1rem;display:none;
+}
+.lg-hint{font-size:.72rem;color:var(--muted);text-align:center;margin-top:.9rem;font-family:var(--font-mono);}
+
+/* ===== APP SHELL ===== */
+#app{display:none;padding-bottom:90px;}
+header.topbar{
+  background:var(--ink);color:var(--paper);
+  padding:1.4rem 1.5rem;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:1rem;
+  border-bottom:4px solid var(--brass);
+}
+.brand-row{display:flex;align-items:center;gap:.7rem;}
+.brand-mark{
+  width:38px;height:38px;border-radius:8px;
+  background:linear-gradient(145deg,var(--brass),var(--rust));
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:#fff;
+}
+.brand-row h1{font-family:var(--font-display);font-size:1.3rem;letter-spacing:.3px;}
+.brand-row .sub{font-size:.72rem;color:var(--brass-light);font-family:var(--font-mono);}
+.top-actions{display:flex;gap:.5rem;flex-wrap:wrap;}
+.pill-btn{
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
+  color:var(--paper);padding:.5rem .95rem;border-radius:30px;
+  font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.35rem;
+  transition:.2s;
+}
+.pill-btn:hover{background:var(--brass);color:var(--ink);border-color:var(--brass);}
+.pill-btn.warn:hover{background:var(--rust);color:#fff;}
+
+/* dashboard stat strip */
+.stat-strip{
+  max-width:980px;margin:1.2rem auto 0;padding:0 1.5rem;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.9rem;
+}
+.stat-card{
+  background:var(--paper-card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:1rem 1.1rem;box-shadow:var(--shadow);
+}
+.stat-card .num{font-family:var(--font-display);font-size:1.7rem;font-weight:700;}
+.stat-card .lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:.2rem;}
+.stat-card.dup .num{color:var(--rust);}
+.stat-card.dup{cursor:pointer;border-color:var(--rust);}
+
+/* search & controls */
+.search-container{max-width:980px;margin:1.4rem auto 0;padding:0 1.5rem;}
+.search-box{
+  background:var(--paper-card);padding:.75rem 1.1rem;border-radius:50px;
+  box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;border:1px solid var(--line);
+}
+.search-box input{border:none;outline:none;background:transparent;width:100%;font-size:.95rem;color:var(--text);}
+.controls-row{
+  max-width:980px;margin:.9rem auto 0;padding:0 1.5rem;
+  display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;
+}
+.chip{
+  padding:.4rem .85rem;border-radius:20px;border:1px solid var(--line);
+  background:var(--paper-card);font-size:.78rem;cursor:pointer;color:var(--muted);font-weight:600;transition:.15s;
+}
+.chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.spacer{flex:1;}
+select.ctrl{
+  border:1px solid var(--line);background:var(--paper-card);color:var(--text);
+  padding:.4rem .7rem;border-radius:10px;font-size:.78rem;cursor:pointer;
+}
+.view-toggle{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+.view-toggle button{padding:.4rem .6rem;background:var(--paper-card);border:none;cursor:pointer;color:var(--muted);}
+.view-toggle button.active{background:var(--ink);color:var(--paper);}
+
+/* A-Z index rail */
+.az-rail{
+  max-width:980px;margin:.8rem auto 0;padding:0 1.5rem;
+  display:flex;gap:.3rem;flex-wrap:wrap;
+}
+.az-rail span{
+  font-family:var(--font-mono);font-size:.72rem;color:var(--muted);
+  width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+  border-radius:5px;cursor:pointer;
+}
+.az-rail span:hover, .az-rail span.has{color:var(--brass);font-weight:700;}
+
+main{max-width:980px;margin:1.3rem auto;padding:0 1.5rem;}
+.az-group-label{
+  font-family:var(--font-display);font-size:1.05rem;color:var(--brass);
+  margin:1.4rem 0 .6rem;padding-bottom:.3rem;border-bottom:2px solid var(--line);
+}
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1rem;}
+.contact-grid.list-view{grid-template-columns:1fr;}
+
+.contact-card{
+  background:var(--paper-card);border-radius:var(--radius);padding:1rem 1.1rem;
+  display:flex;align-items:center;gap:.9rem;box-shadow:var(--shadow);
+  border:1px solid var(--line);transition:.18s;position:relative;
+}
+.contact-card:hover{transform:translateY(-2px);border-color:var(--brass);}
+.contact-card.is-dup{border-left:4px solid var(--rust);}
+.avatar{
+  width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:1.05rem;flex-shrink:0;text-transform:uppercase;color:var(--ink);
+  font-family:var(--font-display);
+}
+.info{flex:1;overflow:hidden;}
+.name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:.3rem;}
+.star{color:var(--brass);font-size:.8rem;}
+.phone-row{font-size:.8rem;color:var(--muted);margin-top:.15rem;display:flex;align-items:center;gap:.4rem;}
+.badges{display:flex;gap:.35rem;margin-top:.35rem;flex-wrap:wrap;}
+.email-row{font-size:.8rem;color:var(--muted);margin-top:.1rem;display:flex;align-items:center;gap:.4rem;}
+.dup-badge{
+  font-size:.65rem;padding:2px 8px;border-radius:10px;border:1px solid var(--rust);color:var(--rust);
+}
+.actions{display:flex;gap:.35rem;flex-shrink:0;}
+.btn-icon{
+  background:transparent;border:1px solid var(--line);width:30px;height:30px;border-radius:8px;
+  cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:.15s;
+}
+.btn-icon:hover{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.btn-icon.wa:hover{background:var(--sage);border-color:var(--sage);color:#fff;}
+.btn-icon.fav:hover{background:var(--brass);border-color:var(--brass);color:#fff;}
+.btn-icon.delete:hover{background:var(--rust);border-color:var(--rust);color:#fff;}
+
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted);}
+.empty-state svg{margin-bottom:.8rem;opacity:.5;}
+
+/* modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(15,14,17,.55);backdrop-filter:blur(3px);
+  z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;
+}
+.modal-overlay.active{display:flex;}
+.modal{
+  background:var(--paper-card);width:100%;max-width:500px;border-radius:18px;padding:1.8rem;
+  box-shadow:0 30px 60px -15px rgba(0,0,0,.4);animation:slideUp .25s ease;max-height:88vh;overflow-y:auto;
+  border-top:5px solid var(--brass);
+}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-title{font-family:var(--font-display);font-size:1.25rem;margin-bottom:1.3rem;}
+.form-group{margin-bottom:.9rem;}
+.form-group label{display:block;margin-bottom:.4rem;font-size:.8rem;font-weight:600;color:var(--muted);}
+.form-input{
+  width:100%;padding:.7rem .9rem;border:1.5px solid var(--line);border-radius:10px;
+  font-size:.92rem;outline:none;background:transparent;color:var(--text);transition:.15s;
+}
+.form-input:focus{border-color:var(--brass);}
+.btn-primary{
+  width:100%;padding:.85rem;background:var(--ink);color:var(--paper);border:none;border-radius:10px;
+  font-weight:700;font-size:.92rem;cursor:pointer;margin-top:.4rem;
+}
+.btn-primary:hover{background:var(--rust);}
+.btn-ghost{
+  background:transparent;border:1.5px solid var(--line);color:var(--text);flex:1;
+  border-radius:10px;padding:.85rem;font-weight:600;cursor:pointer;
+}
+.sql-box{
+  background:var(--ink);color:#d8c389;padding:1rem;border-radius:8px;font-family:var(--font-mono);
+  font-size:.78rem;height:200px;overflow-y:auto;white-space:pre-wrap;margin-bottom:1rem;
+}
+.dup-group{border:1px solid var(--line);border-radius:10px;padding:.8rem;margin-bottom:.8rem;}
+.dup-group h4{font-size:.85rem;margin-bottom:.5rem;color:var(--rust);}
+.dup-item{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;padding:.35rem 0;border-bottom:1px dashed var(--line);}
+.dup-item:last-child{border-bottom:none;}
+
+.fab{
+  position:fixed;bottom:1.6rem;right:1.6rem;width:58px;height:58px;border-radius:50%;
+  background:var(--brass);color:var(--ink);border:none;font-size:1.8rem;cursor:pointer;
+  box-shadow:0 12px 24px -8px rgba(180,134,58,.6);display:flex;align-items:center;justify-content:center;
+  transition:.25s;z-index:50;
+}
+.fab:hover{transform:scale(1.08) rotate(90deg);background:var(--rust);color:#fff;}
+
+/* toast */
+#toastBox{position:fixed;bottom:1.6rem;left:1.6rem;display:flex;flex-direction:column;gap:.5rem;z-index:600;}
+.toast{
+  background:var(--ink);color:var(--paper);padding:.7rem 1.1rem;border-radius:10px;font-size:.82rem;
+  box-shadow:var(--shadow);border-left:4px solid var(--brass);animation:toastIn .25s ease;
+}
+.toast.err{border-left-color:var(--rust);}
+@keyframes toastIn{from{opacity:0;transform:translateX(-10px);}to{opacity:1;transform:translateX(0);}}
+
+/* logout confirm modal */
+.confirm-overlay{
+  position:fixed;inset:0;background:rgba(15,14,17,.55);backdrop-filter:blur(3px);
+  z-index:700;display:flex;align-items:center;justify-content:center;padding:1rem;
+  opacity:0;pointer-events:none;transition:opacity .2s ease;
+}
+.confirm-overlay.active{opacity:1;pointer-events:auto;}
+.confirm-box{
+  background:var(--paper-card);width:100%;max-width:380px;border-radius:18px;padding:1.8rem;
+  box-shadow:0 30px 60px -15px rgba(0,0,0,.4);border-top:5px solid var(--rust);
+  text-align:center;transform:scale(.92);opacity:0;transition:transform .22s ease,opacity .22s ease;
+}
+.confirm-overlay.active .confirm-box{transform:scale(1);opacity:1;}
+.confirm-box h2{font-family:var(--font-display);font-size:1.2rem;margin-bottom:.6rem;}
+.confirm-box p{font-size:.85rem;color:var(--muted);margin-bottom:1.4rem;}
+.confirm-actions{display:flex;gap:10px;}
+
+@media(max-width:600px){
+  header.topbar{padding:1.1rem 1rem;}
+  .brand-row h1{font-size:1.1rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-tab-cut">ROLODEX</div>
+    <div class="login-brand">
+      <div class="mark">R</div>
+      <h1 id="authTitle">Masuk ke Akun</h1>
+      <p>Buku telepon digital pribadi Anda</p>
+    </div>
+    <div class="lg-error" id="lgError"></div>
+    <form id="loginForm" onsubmit="return false;">
+      <div class="lg-group" id="nameField" style="display:none;">
+        <label>Nama Anda</label>
+        <input type="text" id="regName" placeholder="Contoh: Alifio">
+      </div>
+      <div class="lg-group">
+        <label>Username</label>
+        <input type="text" id="authUser" placeholder="username" autocomplete="username">
+      </div>
+      <div class="lg-group">
+        <label>Password</label>
+        <input type="password" id="authPass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="lg-btn" id="authSubmitBtn" onclick="submitAuth()">Masuk</button>
+    </form>
+    <div class="lg-switch" id="authSwitch">Belum punya akun? <a onclick="toggleAuthMode()">Daftar di sini</a></div>
+    <div class="lg-hint">Demo cepat — Username: <b>admin</b> · Password: <b>admin123</b></div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <header class="topbar">
+    <div class="brand-row">
+      <div class="brand-mark">R</div>
+      <div>
+        <h1>Rolodex</h1>
+        <div class="sub" id="welcomeText">Buku Telepon Digital</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="pill-btn" onclick="toggleTheme()" id="themeBtn">🌙 Gelap</button>
+      <button class="pill-btn" onclick="openSqlModal()">💾 SQL DB</button>
+      <button class="pill-btn" onclick="exportVCard()">⬇️ Ekspor .vcf</button>
+      <button class="pill-btn warn" onclick="logout()">Keluar</button>
+    </div>
+  </header>
+
+  <div class="stat-strip">
+    <div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl">Total Kontak</div></div>
+    <div class="stat-card"><div class="num" id="statEmail">0</div><div class="lbl">Email</div></div>
+    <div class="stat-card"><div class="num" id="statFav">0</div><div class="lbl">Favorit</div></div>
+    <div class="stat-card dup" onclick="openDupModal()"><div class="num" id="statDup">0</div><div class="lbl">⚠ Duplikat Terdeteksi</div></div>
+  </div>
+
+  <div class="search-container">
+    <div class="search-box">
+      <svg width="18" height="18" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+      <input type="text" id="searchInput" placeholder="Cari nama, nomor, atau email..." oninput="renderAll()">
+    </div>
+  </div>
+
+  <div class="controls-row">
+    <div class="chip" id="favOnlyChip" onclick="toggleFavOnly()">★ Favorit</div>
+    <div class="spacer"></div>
+    <select class="ctrl" id="sortSelect" onchange="renderAll()">
+      <option value="az">Urutkan: A–Z</option>
+      <option value="za">Urutkan: Z–A</option>
+      <option value="newest">Urutkan: Terbaru</option>
+    </select>
+    <div class="view-toggle">
+      <button id="gridBtn" class="active" onclick="setView('grid')">▦</button>
+      <button id="listBtn" onclick="setView('list')">☰</button>
+    </div>
+  </div>
+
+  <div class="az-rail" id="azRail"></div>
+
+  <main>
+    <div id="resultsWrap"></div>
+  </main>
+
+  <button class="fab" onclick="openAddModal()">+</button>
+</div>
+
+<!-- Modal Form -->
+<div class="modal-overlay" id="formModal">
+  <div class="modal">
+    <h2 class="modal-title" id="modalTitle">Tambah Kontak Baru</h2>
+    <form id="contactForm" onsubmit="handleFormSubmit(event)">
+      <input type="hidden" id="contactId">
+      <div class="form-group"><label>Nama Lengkap</label><input type="text" id="nameInput" class="form-input" required placeholder="Contoh: Ade"></div>
+      <div class="form-group"><label>Nomor Telepon</label><input type="tel" id="phoneInput" class="form-input" required placeholder="Contoh: 0858..."></div>
+      <div class="form-group"><label>Email</label><input type="email" id="emailInput" class="form-input" placeholder="email@contoh.com"></div>
+      <div class="form-group"><label>Link Instagram</label><input type="text" id="igInput" class="form-input" placeholder="https://instagram.com/..."></div>
+      <div class="form-group"><label>Link Facebook</label><input type="text" id="fbInput" class="form-input" placeholder="https://facebook.com/..."></div>
+      <div style="display:flex;gap:10px;">
+        <button type="button" class="btn-ghost" onclick="closeModal('formModal')">Batal</button>
+        <button type="submit" class="btn-primary" style="margin-top:0;flex:2;">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Detail -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="text-align:center;">
+    <div class="avatar" id="detailAvatar" style="width:76px;height:76px;font-size:2.1rem;margin:0 auto 1rem;">A</div>
+    <h2 class="modal-title" id="detailName" style="margin-bottom:.4rem;">Nama</h2>
+    <p style="color:var(--muted);margin-bottom:.3rem;" id="detailPhone">08...</p>
+    <p style="color:var(--muted);margin-bottom:1.3rem;font-size:.85rem;" id="detailEmail"></p>
+    <div style="display:flex;justify-content:center;gap:.7rem;margin-bottom:1.3rem;flex-wrap:wrap;" id="detailSocials"></div>
+    <button class="btn-ghost" style="width:100%;" onclick="closeModal('detailModal')">Tutup</button>
+  </div>
+</div>
+
+<!-- Modal SQL -->
+<div class="modal-overlay" id="sqlModal">
+  <div class="modal">
+    <h2 class="modal-title">MySQL Database Script</h2>
+    <p style="margin-bottom:10px;font-size:.85rem;color:var(--muted);">Salin kode di bawah dan jalankan di phpMyAdmin untuk membuat database sesuai struktur aplikasi.</p>
+    <div class="sql-box" id="sqlCode"></div>
+    <button class="btn-primary" onclick="copySql()">Salin ke Clipboard</button>
+    <button class="btn-ghost" style="width:100%;margin-top:10px;" onclick="closeModal('sqlModal')">Tutup</button>
+  </div>
+</div>
+
+<!-- Modal Duplikat -->
+<div class="modal-overlay" id="dupModal">
+  <div class="modal">
+    <h2 class="modal-title">⚠ Deteksi Kontak Duplikat</h2>
+    <p style="margin-bottom:1rem;font-size:.85rem;color:var(--muted);">Sistem otomatis mengelompokkan kontak dengan nomor telepon yang sama persis. Hapus salinan yang tidak perlu langsung dari sini.</p>
+    <div id="dupList"></div>
+    <button class="btn-ghost" style="width:100%;margin-top:.5rem;" onclick="closeModal('dupModal')">Tutup</button>
+  </div>
+</div>
+
+<div id="toastBox"></div>
+
+<!-- Modal Konfirmasi Logout -->
+<div class="confirm-overlay" id="logoutConfirm">
+  <div class="confirm-box">
+    <h2>Keluar dari akun?</h2>
+    <p>Apakah Anda yakin ingin keluar dari akun ini?</p>
+    <div class="confirm-actions">
+      <button class="btn-ghost" onclick="closeLogoutConfirm()">Batal</button>
+      <button class="btn-primary" style="margin-top:0;flex:1;" onclick="confirmLogout()">Keluar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============== AUTH ============== */
+let authMode = 'login';
+function loadUsers(){
+  let u = JSON.parse(localStorage.getItem('rolodexUsers') || 'null');
+  if(!u){
+    u = [{username:'admin', password:'admin123', name:'Admin'}];
+    localStorage.setItem('rolodexUsers', JSON.stringify(u));
+  }
+  return u;
+}
+function toggleAuthMode(){
+  authMode = authMode === 'login' ? 'register' : 'login';
+  document.getElementById('authTitle').innerText = authMode === 'login' ? 'Masuk ke Akun' : 'Buat Akun Baru';
+  document.getElementById('authSubmitBtn').innerText = authMode === 'login' ? 'Masuk' : 'Daftar';
+  document.getElementById('nameField').style.display = authMode === 'register' ? 'block' : 'none';
+  document.getElementById('authSwitch').innerHTML = authMode === 'login'
+    ? 'Belum punya akun? <a onclick="toggleAuthMode()">Daftar di sini</a>'
+    : 'Sudah punya akun? <a onclick="toggleAuthMode()">Masuk di sini</a>';
+  document.getElementById('lgError').style.display = 'none';
+}
+function showAuthError(msg){
+  const el = document.getElementById('lgError');
+  el.innerText = msg; el.style.display = 'block';
+}
+function submitAuth(){
+  const user = document.getElementById('authUser').value.trim();
+  const pass = document.getElementById('authPass').value;
+  if(!user || !pass){ showAuthError('Username dan password wajib diisi.'); return; }
+  let users = loadUsers();
+  if(authMode === 'register'){
+    const name = document.getElementById('regName').value.trim() || user;
+    if(users.find(u => u.username === user)){ showAuthError('Username sudah dipakai, coba yang lain.'); return; }
+    users.push({username:user, password:pass, name:name});
+    localStorage.setItem('rolodexUsers', JSON.stringify(users));
+    sessionStorage.setItem('rolodexSession', JSON.stringify({username:user, name:name}));
+    enterApp(name);
+  } else {
+    const found = users.find(u => u.username === user && u.password === pass);
+    if(!found){ showAuthError('Username atau password salah.'); return; }
+    sessionStorage.setItem('rolodexSession', JSON.stringify({username:found.username, name:found.name}));
+    enterApp(found.name);
+  }
+}
+function enterApp(name){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('welcomeText').innerText = 'Halo, ' + name + ' 👋';
+  initApp();
+}
+function logout(){
+  document.getElementById('logoutConfirm').classList.add('active');
+}
+function closeLogoutConfirm(){
+  document.getElementById('logoutConfirm').classList.remove('active');
+}
+function confirmLogout(){
+  sessionStorage.removeItem('rolodexSession');
+  location.reload();
+}
+function checkSession(){
+  const s = JSON.parse(sessionStorage.getItem('rolodexSession') || 'null');
+  if(s){ enterApp(s.name); }
+}
+
+/* ============== THEME ============== */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('rolodexTheme', next);
+  document.getElementById('themeBtn').innerText = next === 'dark' ? '☀️ Terang' : '🌙 Gelap';
+}
+(function(){
+  const t = localStorage.getItem('rolodexTheme');
+  if(t === 'dark') document.documentElement.setAttribute('data-theme','dark');
+})();
+
+/* ============== TOAST ============== */
+function toast(msg, type=''){
+  const box = document.getElementById('toastBox');
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type === 'err' ? 'err' : '');
+  t.innerText = msg;
+  box.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='.3s'; setTimeout(()=>t.remove(),300); }, 2600);
+}
+
+/* ============== DATA ============== */
+const rawCSVData = `0 | nama | nomor | email | label
+1 |  | 0858-4110-2041 |  | * myContacts
+2 | Ade | +6282178396479 |  | * myContacts
+3 | Ade | 0823-6109-6531 |  | * myContacts
+4 | Agah Store | +62 895-3233-59974 |  | * myContacts
+5 | Agim | +62 852-1837-4049 |  | * myContacts
+6 | Aiko Store | +62 889-8956-7723 |  | * myContacts
+7 | Aiza | +6285142544735 |  | * myContacts
+8 | Aiza | +6285142544735 |  | * myContacts
+9 | Aldo | +62 812-7862-1173 |  | * myContacts
+10 | Andung | +6285273714532 |  | * myContacts
+11 | Aqua | 0858-3295-0719 |  | * myContacts
+12 | Arif | +62 852-6461-5904 |  | * myContacts
+13 | ArkamaYuu | +62 812-2892-9545 |  | * myContacts
+14 | arman | +62 853-7015-8569 |  | * myContacts
+15 | Assistan YuLa (One) | +62882257504883 |  | * myContacts
+16 | Asta Store | +62 896-1791-9611 |  | * myContacts
+17 | Ayuk Figa | +6282179489650 |  | * myContacts
+18 | Bakcik | +6285366541967 |  | * myContacts
+19 | Bang Aldo | +6285758515928 |  | * myContacts
+20 | Bu Risniara | +62 823-7186-0332 |  | * myContacts
+21 | Bu Susilawati | +6285789869817 |  | * myContacts
+22 | Bu Susilawati | +6285789869817 |  | * myContacts
+23 | Carlcare Layanan Hotline | 08041292241 | service@carlcare.com | * myContacts
+24 | Chalid | +62 882-8978-8195 |  | * myContacts
+25 | Cik Liza | +6285379232466 |  | * myContacts
+26 | Cik Yup | +6282182862031 |  | * myContacts
+27 | CLONE ID ＾ | +62 813-7929-3462 |  | * myContacts
+28 | Datuk | +62 823-7185-6730 |  | * myContacts
+29 | Datuk Ang | +6285268922770 |  | * myContacts
+30 | Deo | +62 821-7751-3309 |  | * myContacts
+31 | Deo | +6282297337151 |  | * myContacts
+32 | Dikma Photo | +62895342640099 |  | * myContacts
+33 | Dina Qorisah | +62 852-6923-1412 |  | * myContacts
+34 | Dit | +62 895-4014-79319 |  | * myContacts
+35 | Erwin Shop | +62 898-8350-973 |  | * myContacts
+36 | Ety | +6285378824145 |  | * myContacts
+37 | Excee Real | +6283133269053 |  | * myContacts
+38 | Fadil | +6285664947935 |  | * myContacts
+39 | Fadil | +6285768472493 |  | * myContacts
+40 | Fadil | +6283857699105 |  | * myContacts
+41 | Fadil Sakti | +6285664947935 |  | * myContacts
+42 | Fath | +62 881-0367-14083 |  | * myContacts
+43 | Fikriqt | +62 821-8309-2524 |  | * myContacts
+44 | Foto Indah | 0821-8686-6207 |  | * myContacts
+45 | ftkopi | +62 812-7113-7477 |  | * myContacts
+46 | Galih | +62 856-0908-9939 |  | * myContacts
+47 | Gei | +62 852-7323-9295 |  | * myContacts
+48 | Gilz Store | +62 821-2127-9475 |  | * myContacts
+49 | Hafiz | +62 823-6109-5572 |  | * myContacts
+50 | HRD INDOMARET CAB.BENGKULU | +6285758084944 |  | * myContacts
+51 | ikhsanderry | +6283186813008 |  | * myContacts
+52 | Ikky Store | +62 858-7212-3833 |  | * myContacts
+53 | Ilham It's Store | +62 831-9850-6980 |  | * myContacts
+54 | Imz Stores | +62 859-2346-1786 |  | * myContacts
+55 | Indah Foto | 0821-8686-6207 |  | * myContacts
+56 | Indra Store | +62 831-2532-0589 |  | * myContacts
+57 | Jhonatan Putra | +62 812-7116-0001 |  | * myContacts
+58 | KAIZO STORE | +62 895-3684-12574 |  | * myContacts
+59 | KGS Dafi | +6289504407235 |  | * myContacts
+60 | Kiki | 0822-1580-8006 |  | * myContacts
+61 | Kos Tk | +6281274954397 |  | * myContacts
+62 | Leo Store | +62 815-1999-9062 |  | * myContacts
+63 | Lim | +62 889-7301-2800 |  | * myContacts
+64 | Luiz | +62 895-1590-2666 |  | * myContacts
+65 | Luki | +62 813-6911-7550 |  | * myContacts
+66 | Luxy Store | +62 823-2599-2071 |  | * myContacts
+67 | Mang Nes | 0858-0990-4425 |  | * myContacts
+68 | Mang Nes | 0858-0990-4425 |  | * myContacts
+69 | Mang Pen | +62 812-7156-2067 |  | * myContacts
+70 | Marshal Rifaldi | +628154015240 |  | * myContacts
+71 | MarshalRifaldi | +62 821-1994-0711 |  | * myContacts
+72 | Maximus Store | +62 812-8351-6246 |  | * myContacts
+73 | Monichaputri | +6285211036604 |  | * myContacts
+74 | MoraxStore | +62 859-3665-0988 |  | * myContacts
+75 | Naachan | +62 838-6098-389 |  | * myContacts
+76 | Nadia Razela | +6282178350902 |  | * myContacts
+77 | Nakib | +62 812-4474-6141 |  | * myContacts
+78 | nanda | +6282178541384 |  | * myContacts
+79 | Nanda | 0812-7884-0971 |  | * myContacts
+80 | Nara Store | +62 859-4739-5349 |  | * myContacts
+81 | Nardazz store | +62 859-2325-4236 |  | * myContacts
+82 | Nek Asih | +6282281672698 |  | * myContacts
+83 | Nek Asih | +6285789869817 |  | * myContacts
+84 | Nigeru | +62895406395267 |  | * myContacts
+85 | Nopal | +62 812-7108-8563 |  | * myContacts
+86 | Npc Shop | +62 823-2286-0375 |  | * myContacts
+87 | Nurul Hashifa | +62 857-8885-7586 |  | * myContacts
+88 | Om Ardi | +6285840840017 |  | * myContacts
+89 | Om Niki | +6281377882606 |  | * myContacts
+90 | Paimon | +13109207335 |  | * myContacts
+91 | Palz Store | +62 878-4892-6575 |  | * myContacts
+92 | Pinz Store | +62 856-4068-0930 |  | * myContacts
+93 | Print | +6283146453879 ::: +6283146453879 |  | * myContacts
+94 | rafi | +62 895-2104-7845 |  | * myContacts
+95 | rafli | +62 895-3641-34200 |  | * myContacts
+96 | Rana Agustian | +62 823-7195-4421 |  | * myContacts
+97 | Rangga Store | +62 838-6264-7209 |  | * myContacts
+98 | reiza | +6285859002605 |  | * myContacts
+99 | Reki Saputra | +62 853-6947-3236 |  | * myContacts
+100 | Rinchan | +62 895-1611-4101 |  | * myContacts
+101 | RIYAN STORE || ALL GAME | +62 821-5989-5469 |  | * myContacts
+102 | Rizky Stress | +62 813-6639-6178 |  | * myContacts
+103 | Roby Wangsaff | +62 856-5821-9881 |  | * myContacts
+104 | Ruzuki | +62 813-6639-6178 |  | * myContacts
+105 | Ryan | +62895806555754 |  | * myContacts
+106 | Ryo | +62895366856202 |  | * myContacts
+107 | RZEY CARAMEL [3194] | +62 856-9128-3194 |  | * myContacts
+108 | Sachi Store | +62 838-3695-6321 |  | * myContacts
+109 | Saifuddin Store | +62 817-7929-6617 |  | * myContacts
+110 | Salsabilla Amanda | +62 858-3295-1393 |  | * myContacts
+111 | SATRIA | +62 858-0931-1317 |  | * myContacts
+112 | SI_Handikaanjasmara_FT'23 | +6285830047699 |  | * myContacts
+113 | Tecno | +6282374468352 |  | * myContacts
+114 | The Indra Son | +62 821-8250-6337 |  | * myContacts
+115 | Tomi | +6283146452493 |  | * myContacts
+116 | Travel Tono | 0823-7329-4090 |  | * myContacts
+117 | Trias | +6287852187056 |  | * myContacts
+118 | Tuk Tawak | +6285382731801 |  | * myContacts
+119 | Ulan | +6285769588981 |  | * myContacts
+120 | Umb | +62 858-9615-3703 |  | * myContacts
+121 | Vannia | +62 812-7108-7573 |  | * myContacts
+122 | Vannia | +62 821-7758-8536 |  | * myContacts
+123 | Vera | 0822-8218-8703 |  | * myContacts
+124 | Wifi | +628127252203 |  | * myContacts
+125 | Yanz Store | +62 857-7124-6788 |  | * myContacts
+126 | Yash | +62 859-7597-0514 |  | * myContacts
+127 | YOPEN ARIZEN | +62 857-6448-1443 |  | * myContacts
+128 | Yovanza | +62 853-6863-7061 |  | * myContacts
+129 | Yuda | +6282280191295 |  | * myContacts
+130 | Yudha Julianda | +62 857-0951-2637 |  | * myContacts
+131 | Yuu | +62 889-7345-9334 |  | * myContacts
+132 | Yuu Store | +62 838-0895-4968 |  | * myContacts
+133 | Yuuki | +62 838-3647-0842 |  | * myContacts
+134 | Zans Store | +62 823-2500-9703 |  | * myContacts
+135 | Zaza | +62 812-7207-3559 |  | * myContacts
+136 | Zee Store | +62 858-1622-8602 |  | * myContacts
+137 | Zenn Store | +62 813-4785-4382 |  | * myContacts
+138 | Zufar | +62 889-8315-0370 |  | * myContacts
+139 | Zuraa | +62 882-2302-4432 |  | * myContacts
+140 | Adit Fb ㅤ | +62 882-2577-5043 |  | * myContacts`;
+
+let contacts = [];
+let favOnly = false;
+let viewMode = 'grid';
+const AVA_COLORS = ['#e8c98a','#f0c4bd','#cfe0c8','#d9c9ee','#c8dde0'];
+
+function initApp(){
+  const stored = localStorage.getItem('myContactsV2');
+  if(stored){ contacts = JSON.parse(stored); }
+  else { contacts = parseCSV(rawCSVData); saveData(); }
+  renderAll();
+}
+function parseCSV(csvText){
+  const lines = csvText.split('\n');
+  let data = [];
+  for(let i=1;i<lines.length;i++){
+    const line = lines[i].trim();
+    if(!line) continue;
+    const cols = line.split(' | ');
+    if(cols.length < 3) continue;
+    const name = cols[1].trim() || 'Unknown';
+    const phone = cols[2].trim();
+    const email = cols[3] ? cols[3].trim() : '';
+    data.push({id:i, name, phone, email, fav:false, createdAt:i});
+  }
+  return data;
+}
+function saveData(){
+  localStorage.setItem('myContactsV2', JSON.stringify(contacts));
+  updateStats();
+}
+function normalizePhone(p){ return (p||'').replace(/[^0-9]/g,''); }
+
+function findDuplicates(){
+  const map = {};
+  contacts.forEach(c=>{
+    const key = normalizePhone(c.phone);
+    if(!key) return;
+    if(!map[key]) map[key] = [];
+    map[key].push(c);
+  });
+  return Object.values(map).filter(g => g.length > 1);
+}
+
+function updateStats(){
+  document.getElementById('statTotal').innerText = contacts.length;
+  document.getElementById('statEmail').innerText = contacts.filter(c=>c.email).length;
+  document.getElementById('statFav').innerText = contacts.filter(c=>c.fav).length;
+  document.getElementById('statDup').innerText = findDuplicates().reduce((a,g)=>a+g.length,0);
+}
+
+function toggleFavOnly(){
+  favOnly = !favOnly;
+  document.getElementById('favOnlyChip').classList.toggle('active', favOnly);
+  renderAll();
+}
+function setView(mode){
+  viewMode = mode;
+  document.getElementById('gridBtn').classList.toggle('active', mode==='grid');
+  document.getElementById('listBtn').classList.toggle('active', mode==='list');
+  renderAll();
+}
+
+function getFiltered(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let data = contacts.filter(c =>
+    (c.name.toLowerCase().includes(q) || c.phone.includes(q) || (c.email||'').toLowerCase().includes(q)) &&
+    (!favOnly || c.fav)
+  );
+  const sort = document.getElementById('sortSelect').value;
+  if(sort === 'az') data.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(sort === 'za') data.sort((a,b)=>b.name.localeCompare(a.name));
+  else if(sort === 'newest') data.sort((a,b)=>b.createdAt-a.createdAt);
+  return data;
+}
+
+function renderAll(){
+  updateStats();
+  const data = getFiltered();
+  renderAZRail(data);
+  renderContacts(data);
+}
+
+function renderAZRail(data){
+  const present = new Set(data.map(c => c.name.charAt(0).toUpperCase()));
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#'.split('');
+  const rail = document.getElementById('azRail');
+  rail.innerHTML = letters.map(l => `<span class="${present.has(l)?'has':''}" onclick="jumpTo('${l}')">${l}</span>`).join('');
+}
+function jumpTo(letter){
+  const el = document.getElementById('grp-'+letter);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function dupPhoneSet(){
+  const groups = findDuplicates();
+  const set = new Set();
+  groups.forEach(g => g.forEach(c => set.add(c.id)));
+  return set;
+}
+
+function renderContacts(data){
+  const wrap = document.getElementById('resultsWrap');
+  wrap.innerHTML = '';
+  if(data.length === 0){
+    wrap.innerHTML = `<div class="empty-state">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+      <div>Tidak ada kontak ditemukan.</div></div>`;
+    return;
+  }
+  const dupIds = dupPhoneSet();
+  // group by first letter for A-Z section labels, only when sorted az/za and no search active visually clean
+  const groups = {};
+  data.forEach(c=>{
+    const letter = /[A-Za-z]/.test(c.name.charAt(0)) ? c.name.charAt(0).toUpperCase() : '#';
+    if(!groups[letter]) groups[letter] = [];
+    groups[letter].push(c);
+  });
+  Object.keys(groups).sort().forEach(letter=>{
+    const label = document.createElement('div');
+    label.className = 'az-group-label';
+    label.id = 'grp-'+letter;
+    label.innerText = letter;
+    wrap.appendChild(label);
+
+    const grid = document.createElement('div');
+    grid.className = 'contact-grid' + (viewMode==='list' ? ' list-view' : '');
+    groups[letter].forEach(c=>{
+      const initial = c.name.charAt(0).toUpperCase();
+      const color = AVA_COLORS[c.name.length % AVA_COLORS.length];
+      const isDup = dupIds.has(c.id);
+      const waNum = normalizePhone(c.phone);
+      const card = document.createElement('div');
+      card.className = 'contact-card' + (isDup ? ' is-dup' : '');
+      card.innerHTML = `
+        <div class="avatar" style="background:${color};cursor:pointer;" onclick="viewDetail(${c.id})">${escapeHtml(initial)}</div>
+        <div class="info">
+          <div class="name">${escapeHtml(c.name)} ${c.fav ? '<span class="star">★</span>' : ''}</div>
+          <div class="phone-row">${escapeHtml(c.phone)}</div>
+          ${c.email ? `<div class="email-row">${escapeHtml(c.email)}</div>` : ''}
+          <div class="badges">
+            ${isDup ? '<span class="dup-badge">⚠ Duplikat</span>' : ''}
+          </div>
+        </div>
+        <div class="actions">
+          <a class="btn-icon wa" href="https://wa.me/${waNum}" target="_blank" title="Chat WhatsApp">
+            <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M17.6 6.3A8 8 0 0 0 4.1 16.4L3 21l4.7-1.2a8 8 0 0 0 12-7A8 8 0 0 0 17.6 6.3zM12 19.3a6.6 6.6 0 0 1-3.4-.9l-.2-.1-2.5.7.7-2.4-.2-.3a6.6 6.6 0 1 1 5.6 3z"/></svg>
+          </a>
+          <button class="btn-icon fav" onclick="toggleFav(${c.id})" title="Favorit">${c.fav ? '★' : '☆'}</button>
+          <button class="btn-icon" onclick="editContact(${c.id})" title="Edit">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
+          <button class="btn-icon delete" onclick="deleteContact(${c.id})" title="Hapus">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </div>`;
+      grid.appendChild(card);
+    });
+    wrap.appendChild(grid);
+  });
+}
+
+function toggleFav(id){
+  const c = contacts.find(x=>x.id==id);
+  if(!c) return;
+  c.fav = !c.fav;
+  saveData(); renderAll();
+  toast(c.fav ? 'Ditambahkan ke favorit ⭐' : 'Dihapus dari favorit');
+}
+
+function openAddModal(){
+  document.getElementById('contactForm').reset();
+  document.getElementById('contactId').value = '';
+  document.getElementById('modalTitle').innerText = 'Tambah Kontak Baru';
+  openModal('formModal');
+}
+function editContact(id){
+  const c = contacts.find(x=>x.id==id);
+  if(!c) return;
+  document.getElementById('contactId').value = c.id;
+  document.getElementById('nameInput').value = c.name;
+  document.getElementById('phoneInput').value = c.phone;
+  document.getElementById('emailInput').value = c.email || '';
+  document.getElementById('igInput').value = c.ig || '';
+  document.getElementById('fbInput').value = c.fb || '';
+  document.getElementById('modalTitle').innerText = 'Edit Kontak';
+  openModal('formModal');
+}
+function handleFormSubmit(e){
+  e.preventDefault();
+  const id = document.getElementById('contactId').value;
+  const newData = {
+    id: id ? parseInt(id) : Date.now(),
+    name: document.getElementById('nameInput').value,
+    phone: document.getElementById('phoneInput').value,
+    email: document.getElementById('emailInput').value,
+    ig: document.getElementById('igInput').value,
+    fb: document.getElementById('fbInput').value,
+    fav: false, createdAt: Date.now()
+  };
+  if(id){
+    const idx = contacts.findIndex(x=>x.id==id);
+    newData.fav = contacts[idx].fav;
+    newData.createdAt = contacts[idx].createdAt;
+    contacts[idx] = newData;
+    toast('Kontak berhasil diperbarui ✓');
+  } else {
+    contacts.push(newData);
+    toast('Kontak baru ditambahkan ✓');
+  }
+  saveData(); renderAll(); closeModal('formModal');
+}
+function deleteContact(id){
+  if(confirm('Yakin hapus kontak ini?')){
+    contacts = contacts.filter(x=>x.id!=id);
+    saveData(); renderAll();
+    toast('Kontak dihapus', 'err');
+  }
+}
+function viewDetail(id){
+  const c = contacts.find(x=>x.id==id);
+  if(!c) return;
+  document.getElementById('detailName').innerText = c.name;
+  document.getElementById('detailPhone').innerText = c.phone;
+  document.getElementById('detailEmail').innerText = c.email || '';
+  document.getElementById('detailAvatar').innerText = c.name.charAt(0).toUpperCase();
+  document.getElementById('detailAvatar').style.background = AVA_COLORS[c.name.length % AVA_COLORS.length];
+  const wrap = document.getElementById('detailSocials');
+  wrap.innerHTML = '';
+
+  const style = `
+color:var(--brass);
+display:flex;
+align-items:center;
+gap:6px;
+text-decoration:none;
+font-weight:700;
+padding:.55rem 1rem;
+border:1.5px solid var(--brass);
+border-radius:10px;
+font-size:.82rem;
+`;
+
+  wrap.innerHTML += `<a href="https://wa.me/${normalizePhone(c.phone)}" target="_blank" style="${style}">WhatsApp</a>`;
+
+  if(c.ig){
+    wrap.innerHTML += `<a href="${c.ig}" target="_blank" style="${style}">Instagram</a>`;
+  }
+
+  if(c.fb){
+    wrap.innerHTML += `<a href="${c.fb}" target="_blank" style="${style}">Facebook</a>`;
+  }
+
+  if(c.email){
+    wrap.innerHTML += `<a href="mailto:${c.email}" style="${style}">Email</a>`;
+  }
+  openModal('detailModal');
+}
+
+/* ===== Duplicate review ===== */
+function openDupModal(){
+  const groups = findDuplicates();
+  const list = document.getElementById('dupList');
+  if(groups.length === 0){
+    list.innerHTML = `<p style="color:var(--muted);font-size:.85rem;">Tidak ada duplikat ditemukan. Buku telepon Anda rapi! 🎉</p>`;
+  } else {
+    list.innerHTML = groups.map(g => `
+      <div class="dup-group">
+        <h4>📞 ${escapeHtml(g[0].phone)} (${g.length} entri)</h4>
+        ${g.map(c => `
+          <div class="dup-item">
+            <span>${escapeHtml(c.name)}</span>
+            <button class="btn-icon delete" onclick="deleteFromDup(${c.id})" title="Hapus">✕</button>
+          </div>`).join('')}
+      </div>`).join('');
+  }
+  openModal('dupModal');
+}
+function deleteFromDup(id){
+  contacts = contacts.filter(x=>x.id!=id);
+  saveData(); openDupModal(); renderAll();
+  toast('Duplikat dihapus', 'err');
+}
+
+/* ===== vCard export ===== */
+function exportVCard(){
+  let vcf = '';
+  contacts.forEach(c=>{
+    vcf += `BEGIN:VCARD\nVERSION:3.0\nFN:${c.name}\nTEL:${c.phone}\n${c.email?('EMAIL:'+c.email+'\n'):''}END:VCARD\n`;
+  });
+  const blob = new Blob([vcf], {type:'text/vcard'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'rolodex-kontak.vcf';
+  a.click();
+  toast('File .vcf berhasil diunduh ⬇️');
+}
+
+/* ===== SQL generator ===== */
+function openSqlModal(){
+  let sql = `-- Tabel Database untuk Aplikasi Rolodex\n`;
+  sql += `CREATE DATABASE IF NOT EXISTS kontak_db;\nUSE kontak_db;\n\n`;
+  sql += `CREATE TABLE users (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  username VARCHAR(50) UNIQUE NOT NULL,\n  password VARCHAR(255) NOT NULL,\n  name VARCHAR(100)\n);\n\n`;
+  sql += `CREATE TABLE contacts (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  user_id INT,\n  name VARCHAR(100) NOT NULL,\n  phone VARCHAR(20) NOT NULL,\n  email VARCHAR(100),\n  ig VARCHAR(100),\n  fb VARCHAR(100),\n  is_favorite TINYINT(1) DEFAULT 0,\n  FOREIGN KEY (user_id) REFERENCES users(id)\n);\n\n`;
+  sql += `-- Data saat ini (${contacts.length} records)\n`;
+  sql += `INSERT INTO contacts (name, phone, email, ig, fb, is_favorite) VALUES\n`;
+  const values = contacts.map(c=>{
+    const n = c.name.replace(/'/g,"\\'");
+    const p = c.phone.replace(/'/g,"\\'");
+    const e = c.email ? `'${c.email}'` : 'NULL';
+    const ig = c.ig ? `'${c.ig}'` : 'NULL';
+    const fb = c.fb ? `'${c.fb}'` : 'NULL';
+    return `('${n}', '${p}', ${e}, ${ig}, ${fb}, ${c.fav?1:0})`;
+  });
+  sql += values.join(',\n') + ';';
+  document.getElementById('sqlCode').innerText = sql;
+  openModal('sqlModal');
+}
+function copySql(){
+  navigator.clipboard.writeText(document.getElementById('sqlCode').innerText).then(()=>toast('SQL disalin ke clipboard ✓'));
+}
+
+/* utils */
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+function escapeHtml(text){ if(!text) return ''; return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+checkSession();
+</script>
+</body>
+</html>
