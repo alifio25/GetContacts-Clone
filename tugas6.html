@@ -614,6 +614,8 @@ git push -u origin main<!DOCTYPE html>
             document.getElementById('phoneInput').value = c.phone;
             document.getElementById('emailInput').value = c.email;
             document.getElementById('catInput').value = c.category;
+            document.getElementById('igInput').value = c.ig || '';
+            document.getElementById('fbInput').value = c.fb || '';
             document.getElementById('modalTitle').innerText = 'Edit Kontak';
             openModal('formModal');
         }
@@ -626,7 +628,9 @@ git push -u origin main<!DOCTYPE html>
                 name: document.getElementById('nameInput').value,
                 phone: document.getElementById('phoneInput').value,
                 email: document.getElementById('emailInput').value,
-                category: document.getElementById('catInput').value
+                category: document.getElementById('catInput').value,
+                ig: document.getElementById('igInput').value,
+                fb: document.getElementById('fbInput').value
             };
 
             if (id) {
@@ -660,20 +664,57 @@ git push -u origin main<!DOCTYPE html>
             renderContacts(filtered);
         }
 
+        function viewDetail(id) {
+            const c = contacts.find(x => x.id == id);
+            if (!c) return;
+        
+            document.getElementById('detailName').innerText = c.name;
+            document.getElementById('detailPhone').innerText = c.phone;
+            document.getElementById('detailAvatar').innerText = c.name.charAt(0).toUpperCase();
+            
+            const colors = ['#dbeafe', '#fce7f3', '#dcfce7', '#ffedd5', '#f3e8ff'];
+            document.getElementById('detailAvatar').style.background = colors[c.name.length % colors.length];
+        
+            const socialsDiv = document.getElementById('detailSocials');
+            socialsDiv.innerHTML = ''; 
+            const btnStyle = "color: var(--primary); display: flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; padding: 0.6rem 1.2rem; border: 2px solid var(--primary); border-radius: 12px; transition: 0.2s;";
+        
+            if (c.ig) {
+                socialsDiv.innerHTML += `
+                <a href="https://instagram.com/${c.ig}" target="_blank" style="${btnStyle}">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    Instagram
+                </a>`;
+            }
+            if (c.fb) {
+                socialsDiv.innerHTML += `
+                <a href="https://facebook.com/search/top/?q=${c.fb}" target="_blank" style="${btnStyle}">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                    Facebook
+                </a>`;
+            }
+            if (!c.ig && !c.fb) {
+                socialsDiv.innerHTML = `<p style="font-size: 0.85rem; color: var(--text-muted);">Belum ada sosial media</p>`;
+            }
+            openModal('detailModal');
+        }
+
         // 4. SQL Generator (Fitur Khusus untuk Dosen)
         function openSqlModal() {
             let sql = `-- Tabel Database untuk Aplikasi Kontak\n`;
             sql += `CREATE DATABASE IF NOT EXISTS kontak_db;\nUSE kontak_db;\n\n`;
-            sql += `CREATE TABLE contacts (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  name VARCHAR(100) NOT NULL,\n  phone VARCHAR(20) NOT NULL,\n  email VARCHAR(100),\n  category VARCHAR(50)\n);\n\n`;
+            sql += `CREATE TABLE contacts (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  name VARCHAR(100) NOT NULL,\n  phone VARCHAR(20) NOT NULL,\n  email VARCHAR(100),\n  category VARCHAR(50),\n  ig VARCHAR(100),\n  fb VARCHAR(100)\n);\n\n`;
             sql += `-- Data saat ini (${contacts.length} records)\n`;
-            sql += `INSERT INTO contacts (name, phone, email, category) VALUES\n`;
+            sql += `INSERT INTO contacts (name, phone, email, category, ig, fb) VALUES\n`;
 
             const values = contacts.map(c => {
-                const n = c.name.replace(/'/g, "\\'"); // escape single quote
+                const n = c.name.replace(/'/g, "\\'");
                 const p = c.phone.replace(/'/g, "\\'");
                 const e = c.email ? `'${c.email}'` : 'NULL';
                 const cat = c.category ? `'${c.category}'` : 'NULL';
-                return `('${n}', '${p}', ${e}, ${cat})`;
+                const ig = c.ig ? `'${c.ig}'` : 'NULL';
+                const fb = c.fb ? `'${c.fb}'` : 'NULL';
+                return `('${n}', '${p}', ${e}, ${cat}, ${ig}, ${fb})`;
             });
             
             sql += values.join(',\n') + ';';
